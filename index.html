@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⌨️ Maria's Typing Teacher!</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    /* Start Page */
+    #startPage {
+      text-align: center;
+      padding: 50px 20px;
+    }
+    #startPage .keyboard-icon {
+      font-size: 120px;
+      animation: bounce 1s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    #startPage h1 {
+      font-size: 3em;
+      background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: rainbow 3s linear infinite;
+      background-size: 400% 100%;
+      margin: 20px 0;
+    }
+    @keyframes rainbow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 400% 50%; }
+    }
+    #startPage .subtitle {
+      font-size: 1.5em;
+      color: white;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .level-btn {
+      display: block;
+      width: 250px;
+      margin: 15px auto;
+      padding: 20px;
+      font-size: 1.3em;
+      font-family: 'Comic Sans MS', cursive;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .level-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+    .level-1 { background: linear-gradient(135deg, #a8e063, #56ab2f); color: white; }
+    .level-2 { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+    .level-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+    .level-4 { background: linear-gradient(135deg, #fa709a, #fee140); color: white; }
+    .level-5 { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    
+    /* Game Page */
+    #gamePage {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    .game-header {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .stat-box {
+      text-align: center;
+      padding: 10px 20px;
+    }
+    .stat-label {
+      font-size: 0.9em;
+      color: #888;
+    }
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #e75480;
+    }
+    
+    .typing-area {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .word-display {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      min-height: 60px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .word {
+      padding: 5px 15px;
+      border-radius: 10px;
+      background: #f0f0f0;
+    }
+    .word.current {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: scale(1.1);
+    }
+    .word.correct {
+      background: linear-gradient(135deg, #a8e063, #56ab2f);
+      color: white;
+    }
+    .word.wrong {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      color: white;
+    }
+    
+    .letter {
+      display: inline-block;
+    }
+    .letter.typed {
+      color: #56ab2f;
+    }
+    .letter.error {
+      color: #ff6b6b;
+      text-decoration: underline;
+    }
+    
+    .input-area {
+      margin-top: 20px;
+    }
+    #typingInput {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.5em;
+      font-family: 'Comic Sans MS', cursive;
+      border: 4px solid #667eea;
+      border-radius: 15px;
+      text-align: center;
+      outline: none;
+    }
+    #typingInput:focus {
+      border-color: #e75480;
+      box-shadow: 0 0 20px rgba(231, 84, 128, 0.3);
+    }
+    
+    .keyboard-hint {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #888;
+    }
+    
+    /* Virtual Keyboard */
+    .keyboard {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin: 5px 0;
+    }
+    .key {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(180deg, #fff 0%, #e0e0e0 100%);
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #333;
+      transition: all 0.1s;
+    }
+    .key.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: scale(1.1);
+      border-color: #667eea;
+    }
+    .key.correct {
+      background: linear-gradient(135deg, #a8e063, #56ab2f);
+      color: white;
+      border-color: #56ab2f;
+    }
+    .key.wrong {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      color: white;
+      border-color: #ff6b6b;
+    }
+    .key.space {
+      width: 250px;
+    }
+    
+    /* Progress Bar */
+    .progress-container {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+    }
+    .progress-label {
+      font-size: 0.9em;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #a8e063, #56ab2f);
+      border-radius: 10px;
+      transition: width 0.3s;
+    }
+    
+    /* Buttons */
+    .back-btn {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      font-family: 'Comic Sans MS', cursive;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .back-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    /* Results */
+    #resultsPage {
+      display: none;
+      text-align: center;
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+    }
+    #resultsPage h2 {
+      font-size: 2.5em;
+      color: #e75480;
+      margin-bottom: 20px;
+    }
+    .result-stat {
+      font-size: 1.3em;
+      margin: 15px 0;
+      color: #666;
+    }
+    .result-stat strong {
+      color: #9b59b6;
+      font-size: 1.2em;
+    }
+    .stars {
+      font-size: 3em;
+      margin: 20px 0;
+    }
+    
+    .message {
+      font-size: 1.2em;
+      color: #9b59b6;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Start Page -->
+  <div id="startPage">
+    <div class="keyboard-icon">⌨️</div>
+    <h1>Typing Teacher!</h1>
+    <p class="subtitle">Maria's Game 🌸</p>
+    
+    <button class="level-btn level-1" onclick="startGame(1)">🌟 Level 1: Easy Words</button>
+    <button class="level-btn level-2" onclick="startGame(2)">⭐ Level 2: Sentences</button>
+    <button class="level-btn level-3" onclick="startGame(3)">🌟 Level 3: Fun Phrases</button>
+    <button class="level-btn level-4" onclick="startGame(4)">⭐ Level 4: Challenge!</button>
+    <button class="level-btn level-5" onclick="startGame(5)">🏆 Level 5: Master!</button>
+  </div>
+  
+  <!-- Game Page -->
+  <div id="gamePage">
+    <div class="game-header">
+      <button class="back-btn" onclick="goBack()">← Back</button>
+      <div class="stat-box">
+        <div class="stat-label">⏱️ Time</div>
+        <div class="stat-value" id="timer">0:00</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">✅ Correct</div>
+        <div class="stat-value" id="correctCount">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">❌ Wrong</div>
+        <div class="stat-value" id="wrongCount">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">🎯 Accuracy</div>
+        <div class="stat-value" id="accuracy">100%</div>
+      </div>
+    </div>
+    
+    <div class="progress-container">
+      <div class="progress-label">Progress: <span id="progressText">0/10</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+    
+    <div class="typing-area">
+      <div class="message" id="message">Type the word below! ⌨️</div>
+      <div class="word-display" id="wordDisplay"></div>
+      <div class="input-area">
+        <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" autofocus>
+        <p class="keyboard-hint">💡 Press <strong>Space</strong> after each word!</p>
+      </div>
+    </div>
+    
+    <div class="keyboard">
+      <div class="keyboard-row">
+        <div class="key">Q</div>
+        <div class="key">W</div>
+        <div class="key">E</div>
+        <div class="key">R</div>
+        <div class="key">T</div>
+        <div class="key">Y</div>
+        <div class="key">U</div>
+        <div class="key">I</div>
+        <div class="key">O</div>
+        <div class="key">P</div>
+      </div>
+      <div class="keyboard-row">
+        <div class="key">A</div>
+        <div class="key">S</div>
+        <div class="key">D</div>
+        <div class="key">F</div>
+        <div class="key">G</div>
+        <div class="key">H</div>
+        <div class="key">J</div>
+        <div class="key">K</div>
+        <div class="key">L</div>
+      </div>
+      <div class="keyboard-row">
+        <div class="key">Z</div>
+        <div class="key">X</div>
+        <div class="key">C</div>
+        <div class="key">V</div>
+        <div class="key">B</div>
+        <div class="key">N</div>
+        <div class="key">M</div>
+      </div>
+      <div class="keyboard-row">
+        <div class="key space">SPACE</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Results Page -->
+  <div id="resultsPage">
+    <h2>🎉 Great Job! 🎉</h2>
+    <div class="stars" id="stars">⭐⭐⭐</div>
+    <div class="result-stat">⏱️ Time: <strong id="finalTime">0:00</strong></div>
+    <div class="result-stat">✅ Correct: <strong id="finalCorrect">0</strong></div>
+    <div class="result-stat">❌ Wrong: <strong id="finalWrong">0</strong></div>
+    <div class="result-stat">🎯 Accuracy: <strong id="finalAccuracy">100%</strong></div>
+    <div class="result-stat">⚡ Speed: <strong id="finalSpeed">0</strong> WPM</div>
+    <br><br>
+    <button class="level-btn level-2" onclick="goBack()">Play Again! 🎮</button>
+  </div>
+  
+  <script>
+    // Word lists by level
+    const wordLists = {
+      1: ['cat', 'dog', 'sun', 'fun', 'run', 'hat', 'bat', 'rat', 'mat', 'sat', 'big', 'pig', 'dig', 'wig', 'jig', 'red', 'bed', 'led', 'fed', 'wed'],
+      2: ['I like cats', 'Dogs are fun', 'The sun is hot', 'I can run fast', 'Big red hat', 'My mom is nice', 'I love pizza', 'School is cool', 'Play all day', 'Reading books'],
+      3: ['Hello my friend', 'Have a nice day', 'You are awesome', 'Keep on trying', 'Never give up', 'Practice makes perfect', 'I believe in you', 'Dream big always', 'Stay positive', 'Be kind today'],
+      4: ['The quick brown fox', 'Jumps over the lazy dog', 'Pack my box with five', 'Dozen liquor jugs', 'How vexingly quick daft zebras jump', 'The five boxing wizards', 'Jump quickly at that'],
+      5: ['Sphinx of black quartz, judge my vow', 'Two driven jocks help fax my big quiz', 'Thejay, pig, fox, zebra and my wolves', 'Quick zephyrs blow, vexing daft Jim', 'Crazy Frederick bought many very exquisite opal jewels']
+    };
+    
+    let currentLevel = 1;
+    let currentWords = [];
+    let currentWordIndex = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let totalWords = 10;
+    let completedWords = 0;
+    
+    function startGame(level) {
+      currentLevel = level;
+      currentWordIndex = 0;
+      correctCount = 0;
+      wrongCount = 0;
+      completedWords = 0;
+      
+      // Get words for this level
+      const words = wordLists[level] || wordLists[1];
+      currentWords = shuffleArray([...words]).slice(0, totalWords);
+      
+      // Show game page
+      document.getElementById('startPage').style.display = 'none';
+      document.getElementById('gamePage').style.display = 'block';
+      document.getElementById('resultsPage').style.display = 'none';
+      
+      // Reset display
+      updateStats();
+      displayWords();
+      
+      // Focus input
+      document.getElementById('typingInput').value = '';
+      document.getElementById('typingInput').focus();
+      
+      // Start timer
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+    
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    function displayWords() {
+      const display = document.getElementById('wordDisplay');
+      display.innerHTML = '';
+      
+      currentWords.forEach((word, index) => {
+        const wordDiv = document.createElement('div');
+        wordDiv.className = 'word';
+        if (index === currentWordIndex) {
+          wordDiv.classList.add('current');
+        }
+        wordDiv.id = 'word-' + index;
+        wordDiv.textContent = word;
+        display.appendChild(wordDiv);
+      });
+    }
+    
+    function updateCurrentWordDisplay() {
+      const currentWord = currentWords[currentWordIndex];
+      const input = document.getElementById('typingInput').value;
+      const wordDiv = document.getElementById('word-' + currentWordIndex);
+      
+      if (!wordDiv) return;
+      
+      let html = '';
+      for (let i = 0; i < currentWord.length; i++) {
+        let letterClass = 'letter';
+        if (i < input.length) {
+          if (input[i].toLowerCase() === currentWord[i].toLowerCase()) {
+            letterClass += ' typed';
+          } else {
+            letterClass += ' error';
+          }
+        }
+        html += `<span class="${letterClass}">${currentWord[i]}</span>`;
+      }
+      wordDiv.innerHTML = html;
+    }
+    
+    function updateStats() {
+      document.getElementById('correctCount').textContent = correctCount;
+      document.getElementById('wrongCount').textContent = wrongCount;
+      
+      const total = correctCount + wrongCount;
+      const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 100;
+      document.getElementById('accuracy').textContent = accuracy + '%';
+      
+      document.getElementById('progressText').textContent = completedWords + '/' + totalWords;
+      document.getElementById('progressFill').style.width = (completedWords / totalWords * 100) + '%';
+    }
+    
+    function updateTimer() {
+      if (!startTime) return;
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    function highlightKey(letter) {
+      // Remove all active keys
+      document.querySelectorAll('.key').forEach(key => {
+        key.classList.remove('active', 'correct', 'wrong');
+      });
+      
+      // Find and highlight the key
+      const upperLetter = letter.toUpperCase();
+      document.querySelectorAll('.key').forEach(key => {
+        if (key.textContent === upperLetter) {
+          key.classList.add('active');
+        }
+        if (upperLetter === ' ') {
+          if (key.classList.contains('space')) {
+            key.classList.add('active');
+          }
+        }
+      });
+    }
+    
+    // Input handler
+    document.getElementById('typingInput').addEventListener('input', function(e) {
+      const input = this.value;
+      const currentWord = currentWords[currentWordIndex];
+      
+      // Highlight key
+      if (input.length > 0) {
+        highlightKey(input[input.length - 1]);
+      }
+      
+      updateCurrentWordDisplay();
+      
+      // Check if space pressed (word complete)
+      if (input.endsWith(' ')) {
+        const typedWord = input.trim();
+        
+        if (typedWord.toLowerCase() === currentWord.toLowerCase()) {
+          // Correct!
+          correctCount++;
+          document.getElementById('word-' + currentWordIndex).classList.remove('current');
+          document.getElementById('word-' + currentWordIndex).classList.add('correct');
+          document.getElementById('message').textContent = '✅ Correct! Great job!';
+          document.getElementById('message').style.color = '#56ab2f';
+        } else {
+          // Wrong
+          wrongCount++;
+          document.getElementById('word-' + currentWordIndex).classList.remove('current');
+          document.getElementById('word-' + currentWordIndex).classList.add('wrong');
+          document.getElementById('message').textContent = '❌ Oops! Try: ' + currentWord;
+          document.getElementById('message').style.color = '#ff6b6b';
+        }
+        
+        completedWords++;
+        currentWordIndex++;
+        this.value = '';
+        
+        updateStats();
+        
+        // Check if game complete
+        if (currentWordIndex >= currentWords.length) {
+          endGame();
+        } else {
+          setTimeout(() => {
+            document.getElementById('word-' + currentWordIndex).classList.add('current');
+          }, 100);
+        }
+      }
+    });
+    
+    function endGame() {
+      clearInterval(timerInterval);
+      
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      const total = correctCount + wrongCount;
+      const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 100;
+      
+      // Calculate WPM (words per minute)
+      const wpm = elapsed > 0 ? Math.round((correctCount / elapsed) * 60) : 0;
+      
+      // Show results
+      document.getElementById('gamePage').style.display = 'none';
+      document.getElementById('resultsPage').style.display = 'block';
+      
+      document.getElementById('finalTime').textContent = timeStr;
+      document.getElementById('finalCorrect').textContent = correctCount;
+      document.getElementById('finalWrong').textContent = wrongCount;
+      document.getElementById('finalAccuracy').textContent = accuracy + '%';
+      document.getElementById('finalSpeed').textContent = wpm;
+      
+      // Stars based on accuracy
+      let stars = '⭐';
+      if (accuracy >= 80) stars = '⭐⭐';
+      if (accuracy >= 95) stars = '⭐⭐⭐';
+      document.getElementById('stars').textContent = stars;
+    }
+    
+    function goBack() {
+      clearInterval(timerInterval);
+      document.getElementById('startPage').style.display = 'block';
+      document.getElementById('gamePage').style.display = 'none';
+      document.getElementById('resultsPage').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
