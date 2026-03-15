@@ -287,17 +287,37 @@
   </style>
 </head>
 <body>
-  <!-- Start Page -->
-  <div id="startPage">
+  <!-- Welcome Page -->
+  <div id="welcomePage">
     <div class="keyboard-icon">⌨️</div>
     <h1>Typing Teacher!</h1>
     <p class="subtitle">Maria's Game 🌸</p>
+    
+    <div style="background:rgba(255,255,255,0.95); border-radius:20px; padding:30px; margin:20px; max-width:400px;">
+      <p style="font-size:1.5em; color:#e75480; margin-bottom:20px;">🎮 Are you ready? 🎮</p>
+      <p style="font-size:1.1em; color:#666; margin-bottom:15px;">How old are you?</p>
+      <input type="number" id="ageInput" placeholder="Type your age..." min="5" max="18" 
+             style="width:100%; padding:15px; font-size:1.5em; text-align:center; border:3px solid #667eea; border-radius:15px; font-family:'Comic Sans MS', cursive;">
+      <br><br>
+      <button onclick="showLevels()" style="background:linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #5f27cd); background-size:300% 100%; animation:rainbow-btn 2s linear infinite; color:white; padding:15px 40px; font-size:1.3em; border:none; border-radius:15px; cursor:pointer; font-family:'Comic Sans MS', cursive; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">
+        START! 🚀
+      </button>
+    </div>
+  </div>
+  
+  <!-- Start Page (Levels) -->
+  <div id="startPage" style="display:none;">
+    <div class="keyboard-icon">⌨️</div>
+    <h1>Are You Ready?</h1>
+    <p class="subtitle" id="ageMessage">Let's practice typing! 🌸</p>
     
     <button class="level-btn level-1" onclick="startGame(1)">🌟 Level 1: Easy Words</button>
     <button class="level-btn level-2" onclick="startGame(2)">⭐ Level 2: Sentences</button>
     <button class="level-btn level-3" onclick="startGame(3)">🌟 Level 3: Fun Phrases</button>
     <button class="level-btn level-4" onclick="startGame(4)">⭐ Level 4: Challenge!</button>
     <button class="level-btn level-5" onclick="startGame(5)">🏆 Level 5: Master!</button>
+    
+    <p style="color:white; margin-top:20px; font-size:0.9em;">💡 Levels adjusted for age: <span id="ageDisplay"></span></p>
   </div>
   
   <!-- Game Page -->
@@ -411,6 +431,55 @@
     let timerInterval = null;
     let totalWords = 10;
     let completedWords = 0;
+    let playerAge = 8;
+    
+    function showLevels() {
+      const ageInput = document.getElementById('ageInput');
+      const age = parseInt(ageInput.value);
+      
+      // Validate age
+      if (!age || age < 5 || age > 18) {
+        alert('Please enter an age between 5 and 18!');
+        return;
+      }
+      
+      playerAge = age;
+      
+      // Adjust level names and difficulty based on age
+      const levelContainer = document.querySelector('#startPage');
+      const buttons = levelContainer.querySelectorAll('.level-btn');
+      
+      if (age <= 7) {
+        // Young kids - easier levels
+        buttons[0].textContent = '🌟 Level 1: ABC Letters';
+        buttons[1].textContent = '🌟 Level 2: 3-Letter Words';
+        buttons[2].textContent = '🌟 Level 3: Short Words';
+        buttons[3].textContent = '⭐ Level 4: Easy Sentences';
+        buttons[4].textContent = '⭐ Level 5: Fun Phrases';
+        totalWords = 8;
+      } else if (age <= 10) {
+        // Elementary - medium
+        buttons[0].textContent = '🌟 Level 1: Easy Words';
+        buttons[1].textContent = '⭐ Level 2: Sentences';
+        buttons[2].textContent = '🌟 Level 3: Fun Phrases';
+        buttons[3].textContent = '⭐ Level 4: Challenge!';
+        buttons[4].textContent = '🏆 Level 5: Master!';
+        totalWords = 10;
+      } else {
+        // Older kids - harder
+        buttons[0].textContent = '⭐ Level 1: Quick Words';
+        buttons[1].textContent = '⭐ Level 2: Sentences';
+        buttons[2].textContent = '⭐ Level 3: Hard Phrases';
+        buttons[3].textContent = '🌟 Level 4: Challenge!';
+        buttons[4].textContent = '🏆 Level 5: Expert!';
+        totalWords = 12;
+      }
+      
+      // Show start page with levels
+      document.getElementById('welcomePage').style.display = 'none';
+      document.getElementById('startPage').style.display = 'block';
+      document.getElementById('ageDisplay').textContent = playerAge;
+    }
     
     function startGame(level) {
       currentLevel = level;
@@ -615,7 +684,8 @@
     
     function goBack() {
       clearInterval(timerInterval);
-      document.getElementById('startPage').style.display = 'block';
+      document.getElementById('welcomePage').style.display = 'block';
+      document.getElementById('startPage').style.display = 'none';
       document.getElementById('gamePage').style.display = 'none';
       document.getElementById('resultsPage').style.display = 'none';
     }
