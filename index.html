@@ -55,7 +55,7 @@
     }
     .level-btn {
       display: block;
-      width: 250px;
+      width: 280px;
       margin: 15px auto;
       padding: 20px;
       font-size: 1.3em;
@@ -117,42 +117,35 @@
     }
     
     .word-display {
-      font-size: 2.5em;
+      font-size: 2em;
       margin-bottom: 20px;
-      min-height: 60px;
+      min-height: 80px;
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
-      gap: 10px;
     }
     .word {
-      padding: 5px 15px;
-      border-radius: 10px;
-      background: #f0f0f0;
-    }
-    .word.current {
+      padding: 15px 25px;
+      border-radius: 15px;
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
-      transform: scale(1.1);
+      letter-spacing: 2px;
     }
-    .word.correct {
-      background: linear-gradient(135deg, #a8e063, #56ab2f);
-      color: white;
-    }
-    .word.wrong {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-      color: white;
-    }
-    
     .letter {
       display: inline-block;
+      transition: all 0.1s;
     }
     .letter.typed {
-      color: #56ab2f;
+      color: #a8e063;
+      text-shadow: 0 0 10px #a8e063;
     }
     .letter.error {
       color: #ff6b6b;
       text-decoration: underline;
+      text-shadow: 0 0 10px #ff6b6b;
+    }
+    .letter.space {
+      min-width: 15px;
     }
     
     .input-area {
@@ -211,16 +204,6 @@
       color: white;
       transform: scale(1.1);
       border-color: #667eea;
-    }
-    .key.correct {
-      background: linear-gradient(135deg, #a8e063, #56ab2f);
-      color: white;
-      border-color: #56ab2f;
-    }
-    .key.wrong {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-      color: white;
-      border-color: #ff6b6b;
     }
     .key.space {
       width: 250px;
@@ -299,6 +282,7 @@
       font-size: 1.2em;
       color: #9b59b6;
       margin: 10px 0;
+      min-height: 30px;
     }
   </style>
 </head>
@@ -347,9 +331,11 @@
     
     <div class="typing-area">
       <div class="message" id="message">Type the word below! ⌨️</div>
-      <div class="word-display" id="wordDisplay"></div>
+      <div class="word-display">
+        <div class="word" id="currentWord"></div>
+      </div>
       <div class="input-area">
-        <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" autofocus onkeypress="handleKeyPress(event)">
+        <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" autofocus>
         <p class="keyboard-hint">💡 Press <strong>Enter</strong> when done!</p>
       </div>
     </div>
@@ -412,8 +398,8 @@
       1: ['cat', 'dog', 'sun', 'fun', 'run', 'hat', 'bat', 'rat', 'mat', 'sat', 'big', 'pig', 'dig', 'wig', 'jig', 'red', 'bed', 'led', 'fed', 'wed'],
       2: ['I like cats', 'Dogs are fun', 'The sun is hot', 'I can run fast', 'Big red hat', 'My mom is nice', 'I love pizza', 'School is cool', 'Play all day', 'Reading books'],
       3: ['Hello my friend', 'Have a nice day', 'You are awesome', 'Keep on trying', 'Never give up', 'Practice makes perfect', 'I believe in you', 'Dream big always', 'Stay positive', 'Be kind today'],
-      4: ['The quick brown fox', 'Jumps over the lazy dog', 'Pack my box with five', 'Dozen liquor jugs', 'How vexingly quick daft zebras jump', 'The five boxing wizards', 'Jump quickly at that'],
-      5: ['Sphinx of black quartz, judge my vow', 'Two driven jocks help fax my big quiz', 'Thejay, pig, fox, zebra and my wolves', 'Quick zephyrs blow, vexing daft Jim', 'Crazy Frederick bought many very exquisite opal jewels']
+      4: ['The quick brown fox', 'Jumps over the lazy dog', 'Pack my box with five', 'Dozen liquor jugs', 'How vexingly quick', 'The five boxing wizards', 'Jump quickly at that'],
+      5: ['Sphinx of black quartz', 'Two driven jocks help', 'Quick zephyrs blow', 'Crazy Frederick bought', 'Many exquisite jewels']
     };
     
     let currentLevel = 1;
@@ -444,7 +430,7 @@
       
       // Reset display
       updateStats();
-      displayWords();
+      showCurrentWord();
       
       // Focus input
       document.getElementById('typingInput').value = '';
@@ -463,32 +449,27 @@
       return array;
     }
     
-    function displayWords() {
-      const display = document.getElementById('wordDisplay');
-      display.innerHTML = '';
-      
-      currentWords.forEach((word, index) => {
-        const wordDiv = document.createElement('div');
-        wordDiv.className = 'word';
-        if (index === currentWordIndex) {
-          wordDiv.classList.add('current');
-        }
-        wordDiv.id = 'word-' + index;
-        wordDiv.textContent = word;
-        display.appendChild(wordDiv);
-      });
+    function showCurrentWord() {
+      const wordDiv = document.getElementById('currentWord');
+      if (currentWordIndex < currentWords.length) {
+        wordDiv.textContent = currentWords[currentWordIndex];
+        updateWordHighlight();
+      }
     }
     
-    function updateCurrentWordDisplay() {
+    function updateWordHighlight() {
       const currentWord = currentWords[currentWordIndex];
       const input = document.getElementById('typingInput').value;
-      const wordDiv = document.getElementById('word-' + currentWordIndex);
+      const wordDiv = document.getElementById('currentWord');
       
-      if (!wordDiv) return;
+      if (!wordDiv || !currentWord) return;
       
       let html = '';
       for (let i = 0; i < currentWord.length; i++) {
         let letterClass = 'letter';
+        if (currentWord[i] === ' ') {
+          letterClass += ' space';
+        }
         if (i < input.length) {
           if (input[i].toLowerCase() === currentWord[i].toLowerCase()) {
             letterClass += ' typed';
@@ -524,7 +505,7 @@
     function highlightKey(letter) {
       // Remove all active keys
       document.querySelectorAll('.key').forEach(key => {
-        key.classList.remove('active', 'correct', 'wrong');
+        key.classList.remove('active');
       });
       
       // Find and highlight the key
@@ -550,24 +531,20 @@
     
     function checkWord() {
       const input = document.getElementById('typingInput');
-      const typedText = input.value.trim();
+      const typedText = input.value;
       const currentWord = currentWords[currentWordIndex];
       
-      if (!typedText) return; // Don't submit empty
+      if (!typedText.trim()) return; // Don't submit empty
       
       if (typedText.toLowerCase() === currentWord.toLowerCase()) {
         // Correct!
         correctCount++;
-        document.getElementById('word-' + currentWordIndex).classList.remove('current');
-        document.getElementById('word-' + currentWordIndex).classList.add('correct');
         document.getElementById('message').textContent = '✅ Correct! Great job!';
         document.getElementById('message').style.color = '#56ab2f';
       } else {
         // Wrong
         wrongCount++;
-        document.getElementById('word-' + currentWordIndex).classList.remove('current');
-        document.getElementById('word-' + currentWordIndex).classList.add('wrong');
-        document.getElementById('message').textContent = '❌ Oops! The answer was: ' + currentWord;
+        document.getElementById('message').textContent = '❌ The answer was: ' + currentWord;
         document.getElementById('message').style.color = '#ff6b6b';
       }
       
@@ -581,22 +558,28 @@
       if (currentWordIndex >= currentWords.length) {
         endGame();
       } else {
-        setTimeout(() => {
-          document.getElementById('word-' + currentWordIndex).classList.add('current');
-        }, 100);
+        // Show next word
+        showCurrentWord();
       }
     }
     
-    // Input handler - just update display as you type
+    // Input handler - update display as you type
     document.getElementById('typingInput').addEventListener('input', function(e) {
       const input = this.value;
       
-      // Highlight key
+      // Highlight key on virtual keyboard
       if (input.length > 0) {
         highlightKey(input[input.length - 1]);
       }
       
-      updateCurrentWordDisplay();
+      updateWordHighlight();
+    });
+    
+    // Enter key handler
+    document.getElementById('typingInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkWord();
+      }
     });
     
     function endGame() {
