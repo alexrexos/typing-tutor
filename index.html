@@ -349,8 +349,8 @@
       <div class="message" id="message">Type the word below! ⌨️</div>
       <div class="word-display" id="wordDisplay"></div>
       <div class="input-area">
-        <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" autofocus>
-        <p class="keyboard-hint">💡 Press <strong>Space</strong> after each word!</p>
+        <input type="text" id="typingInput" placeholder="Start typing here..." autocomplete="off" autofocus onkeypress="handleKeyPress(event)">
+        <p class="keyboard-hint">💡 Press <strong>Enter</strong> when done!</p>
       </div>
     </div>
     
@@ -541,10 +541,55 @@
       });
     }
     
-    // Input handler
+    // Handle Enter key press
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        checkWord();
+      }
+    }
+    
+    function checkWord() {
+      const input = document.getElementById('typingInput');
+      const typedText = input.value.trim();
+      const currentWord = currentWords[currentWordIndex];
+      
+      if (!typedText) return; // Don't submit empty
+      
+      if (typedText.toLowerCase() === currentWord.toLowerCase()) {
+        // Correct!
+        correctCount++;
+        document.getElementById('word-' + currentWordIndex).classList.remove('current');
+        document.getElementById('word-' + currentWordIndex).classList.add('correct');
+        document.getElementById('message').textContent = '✅ Correct! Great job!';
+        document.getElementById('message').style.color = '#56ab2f';
+      } else {
+        // Wrong
+        wrongCount++;
+        document.getElementById('word-' + currentWordIndex).classList.remove('current');
+        document.getElementById('word-' + currentWordIndex).classList.add('wrong');
+        document.getElementById('message').textContent = '❌ Oops! The answer was: ' + currentWord;
+        document.getElementById('message').style.color = '#ff6b6b';
+      }
+      
+      completedWords++;
+      currentWordIndex++;
+      input.value = '';
+      
+      updateStats();
+      
+      // Check if game complete
+      if (currentWordIndex >= currentWords.length) {
+        endGame();
+      } else {
+        setTimeout(() => {
+          document.getElementById('word-' + currentWordIndex).classList.add('current');
+        }, 100);
+      }
+    }
+    
+    // Input handler - just update display as you type
     document.getElementById('typingInput').addEventListener('input', function(e) {
       const input = this.value;
-      const currentWord = currentWords[currentWordIndex];
       
       // Highlight key
       if (input.length > 0) {
@@ -552,42 +597,6 @@
       }
       
       updateCurrentWordDisplay();
-      
-      // Check if space pressed (word complete)
-      if (input.endsWith(' ')) {
-        const typedWord = input.trim();
-        
-        if (typedWord.toLowerCase() === currentWord.toLowerCase()) {
-          // Correct!
-          correctCount++;
-          document.getElementById('word-' + currentWordIndex).classList.remove('current');
-          document.getElementById('word-' + currentWordIndex).classList.add('correct');
-          document.getElementById('message').textContent = '✅ Correct! Great job!';
-          document.getElementById('message').style.color = '#56ab2f';
-        } else {
-          // Wrong
-          wrongCount++;
-          document.getElementById('word-' + currentWordIndex).classList.remove('current');
-          document.getElementById('word-' + currentWordIndex).classList.add('wrong');
-          document.getElementById('message').textContent = '❌ Oops! Try: ' + currentWord;
-          document.getElementById('message').style.color = '#ff6b6b';
-        }
-        
-        completedWords++;
-        currentWordIndex++;
-        this.value = '';
-        
-        updateStats();
-        
-        // Check if game complete
-        if (currentWordIndex >= currentWords.length) {
-          endGame();
-        } else {
-          setTimeout(() => {
-            document.getElementById('word-' + currentWordIndex).classList.add('current');
-          }, 100);
-        }
-      }
     });
     
     function endGame() {
